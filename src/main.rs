@@ -4,6 +4,10 @@ mod cpu;
 fn main() {
     let mut chip8 = cpu::cpu::new();
     chip8.load_rom("src/Pong.ch8");
+    loop {
+        chip8.run();
+    }
+
 
 
 }
