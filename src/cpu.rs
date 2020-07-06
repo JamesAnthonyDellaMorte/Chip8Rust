@@ -1,5 +1,8 @@
 #![allow(dead_code)]
-
+extern crate sfml;
+use sfml::{
+    window::{Key},
+};
 
 pub struct cpu {
     // index register
@@ -10,7 +13,7 @@ pub struct cpu {
     pub memory: [u8; 0x1000],
     // registers
     pub V: [u8; 0x10],
-
+    pub  keycode: Vec<Key>,
     // stack
     pub stack: [usize; 0x10],
     // stack pointer
@@ -29,6 +32,10 @@ impl cpu {
         pc: 0x200,
         I: 0,
         sp: 0,
+        keycode: vec!(Key::Num1,Key::Num2,Key::Num3,Key::Num4,
+                      Key::Q,Key::W,Key::E,Key::R,
+                      Key::A,Key::S,Key::D,Key::F,
+                      Key::Z,Key::X,Key::C,Key::V),
         memory: [0;0x1000],
         V: [0; 0x10],
         stack: [0; 0x10],
@@ -81,8 +88,8 @@ impl cpu {
         );
         match nibbles
         {
-            (0x00, 0x00, 0x0e, 0x00) => self.CLS(),
-            (0x00, 0x00, 0x0e, 0x0e) => self.RET(),
+            (0x00, 0x00, 0x0e, 0x00) => self.CLS(),//opcode 00E0
+            (0x00, 0x00, 0x0e, 0x0e) => self.RET(), //opcode 00EE
             (0x01, _, _, _) => self.JP(opcode), //opcode 1nnn
             (0x02, _, _, _) => self.CALL(opcode),//opcode 2nnn
             (0x03, _, _, _) => self.SEVX(opcode),//opcode 3nnn
@@ -104,6 +111,18 @@ impl cpu {
             (0x0B, _, _, _) => self.JPV0(opcode),//opcode Bnnn
             (0x0C, _, _, _) => self.RND(opcode),//opcode Cnnn
             (0x0D, _, _, _) => self.DRW(opcode),//opcode Dnnn
+            (0x0E, _, 0x09, 0x0E) => self.SKP(opcode),//opcode Ex9E
+            (0x0E, _, 0x0A, 0x01) => self.SKNP(opcode),//opcode ExA1
+            (0x0F, _, 0x00, 0x07) => self.LDVXDT(opcode),//opcode Fx07
+            (0x0F, _, 0x00, 0x0A) => self.LDKEY(opcode),//opcode Fx0A
+            (0x0F, _, 0x01, 0x05) => self.LDDTVX(opcode),//opcode Fx15
+            (0x0F, _, 0x01, 0x08) => self.LDSTVX(opcode),//opcode Fx18
+            (0x0F, _, 0x01, 0x0E) => self.ADDI(opcode),//opcode Fx1E
+            (0x0F, _, 0x02, 0x09) => self.LDHEXFT(opcode),//opcode Fx29
+            (0x0F, _, 0x03, 0x03) => self.LDB(opcode),//opcode Fx33
+            (0x0F, _, 0x05, 0x05) => self.LDVALL(opcode),//opcode Fx55
+            (0x0F, _, 0x06, 0x05) => self.LDIALL(opcode),//opcode Fx65
+
             _ => self.NOP(),
         }
 
@@ -130,8 +149,8 @@ impl cpu {
     pub fn CALL(&mut self, op: u16 )
     //opcode 2nnn
     {
-        self.stack[self.sp] = self.pc as usize;
         self.sp += 1;
+        self.stack[self.sp] = self.pc as usize;
         self.pc = (op & 0x0FFF) as usize;
 
     }
@@ -294,6 +313,94 @@ impl cpu {
     }
     pub fn DRW(&mut self, op: u16)
     {//opcode Dnnn
-        println!("Print to Screen {}",op);
+        println!("Print to Screen {:X}",op);
+        self.pc += 2;
+    }
+    pub fn SKP(&mut self, op: u16)
+    {//opcode Ex9E
+    if self.keycode[((op & 0x0F00) >> 8) as usize].is_pressed()
+    {
+        self.pc += 4;
+    }
+        else { self.pc += 2; }
+    }
+    pub fn SKNP(&mut self, op: u16)
+    {//opcode ExA1
+        if !self.keycode[((op & 0x0F00) >> 8) as usize].is_pressed()
+        {
+            self.pc += 4;
+        }
+        else { self.pc += 2; }
+    }
+    pub fn LDVXDT(&mut self, op: u16)
+    {//opcode Fx07
+    self.V[((op & 0x0F00) >> 8) as usize] = self.delay_timer;
+    self.pc += 2;
+    }
+    pub fn LDKEY(&mut self, op: u16)
+    {//opcode Fx0A
+        'outer: loop {
+            for ele in &self.keycode
+            {
+                if ele.is_pressed()
+                {
+                    self.V[((op & 0x0F00) >> 8) as usize] = self.keycode.iter().position(|&r| r == *ele).unwrap() as u8;
+                    break 'outer;
+                }
+            }
+        }
+        self.pc += 2;
+
+    }
+    pub fn LDDTVX(&mut self, op: u16)
+    {//opcode Fx15
+        self.delay_timer = self.V[((op & 0x0F00) >> 8) as usize];
+        self.pc += 2;
+    }
+    pub fn LDSTVX(&mut self, op: u16)
+    {//opcode Fx18
+        self.sound_timer = self.V[((op & 0x0F00) >> 8) as usize];
+        self.pc += 2;
+    }
+    pub fn ADDI(&mut self, op: u16)
+    {//opcode Fx1E
+        self.I = (self.V[((op & 0x0F00) >> 8) as usize] + self.I as u8) as usize;
+        self.pc += 2;
+
+    }
+    pub fn LDHEXFT(&mut self, op: u16) {
+        //opcode 0xF029
+        self.I  = (self.V[((op & 0x0F00) >> 8) as usize] * 0x5) as usize;
+        self.pc += 2;
+    }
+    pub fn LDB(&mut self, op: u16)
+    {//opcode 0xF033
+    self.memory[self.I] = self.V[((op & 0x0F00) >> 8) as usize] / 100;
+    self.memory[self.I + 1] = (self.V[((op & 0x0F00) >> 8) as usize]  / 10) % 10;
+    self.memory[self.I + 2] = (self.V[((op & 0x0F00) >> 8) as usize] ) % 10;
+    self.pc += 2;
+
+
+    }
+    pub fn LDVALL(&mut self, op: u16)
+    {//opcode 0xF055
+    for i in 0..((op & 0x0F00) >> 8)
+    {
+        self.memory[self.I + i as usize] = self.V[i as usize];
+    }
+
+
+    self.pc += 2;
+    }
+
+    pub fn LDIALL(&mut self, op: u16)
+    {//opcode 0xF065
+        for i in 0..((op & 0x0F00) >> 8)
+        {
+            self.V[i as usize] = self.memory[self.I + i as usize];
+        }
+
+
+        self.pc += 2;
     }
 }
