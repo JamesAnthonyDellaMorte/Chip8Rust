@@ -21,6 +21,8 @@ pub struct cpu {
     pub hexSprites: [u8; 0x50],
     pub delay_timer: u8,
     pub sound_timer: u8,
+    pub screen: [u8; 64 * 32],
+    pub drawFlag: bool,
 
 
 }
@@ -59,6 +61,8 @@ impl cpu {
             0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
             0xF0, 0x80, 0xF0, 0x80, 0x80  //F
             ],
+            screen: [0; 64 * 32],
+            drawFlag: false,
         }
       //  for elem in self.memory.iter_mut() { *elem = 0; }
     }
@@ -86,7 +90,11 @@ impl cpu {
             (opcode & 0x00F0) >> 4 as u16,
             (opcode & 0x000F) as u8,
         );
+      //  println!("Current Opcode: {:X}", opcode);
+        // println!("PC: {:X}", self.pc);
+
         match nibbles
+
         {
             (0x00, 0x00, 0x0e, 0x00) => self.CLS(),//opcode 00E0
             (0x00, 0x00, 0x0e, 0x0e) => self.RET(), //opcode 00EE
@@ -137,8 +145,10 @@ impl cpu {
     }
     pub fn RET(&mut self )
     {
-        self.pc = self.stack[self.sp] as usize;
         self.sp -= 1;
+        self.pc = self.stack[self.sp] as usize;
+        self.pc += 2;
+
 
     }
     pub fn JP(&mut self, op: u16 )
@@ -149,8 +159,9 @@ impl cpu {
     pub fn CALL(&mut self, op: u16 )
     //opcode 2nnn
     {
-        self.sp += 1;
+
         self.stack[self.sp] = self.pc as usize;
+        self.sp += 1;
         self.pc = (op & 0x0FFF) as usize;
 
     }
@@ -199,7 +210,7 @@ impl cpu {
     }
     pub fn ADDVX(&mut self, op: u16)
     {//opcode 7nnn
-        self.V[((op & 0x0F00) >> 8) as usize] = self.V[((op & 0x0F00) >> 8) as usize] + (op & 0x00FF) as u8;
+        self.V[((op & 0x0F00) >> 8) as usize] += (op & 0x00FF) as u8;
         self.pc += 2;
     }
     pub fn LD(&mut self, op: u16)
@@ -230,6 +241,7 @@ impl cpu {
     {
         self.V[0xF] = 0x1;
         self.V[((op & 0x0F00) >> 8) as usize]  = (sum & 0x00FF) as u8;
+
     }
     else
     {
@@ -313,7 +325,28 @@ impl cpu {
     }
     pub fn DRW(&mut self, op: u16)
     {//opcode Dnnn
-        println!("Print to Screen {:X}",op);
+
+       let x: u16 = self.V[((op & 0x0F00) >> 8) as usize] as u16;
+        let y: u16 = self.V[((op & 0x00F0) >> 4) as usize] as u16;
+        let height = op & 0x000F;
+        let mut pixel: u8;
+        self.V[0xF] = 0;
+        for yline in 0..height
+        {
+            pixel = self.memory[self.I + yline as usize];
+            for xline in 0..8
+            {
+                if pixel & (0x80 >> xline) != 0
+                {
+                    if self.screen[(x + xline as u16 + (y + yline * 64)) as usize] == 1
+                    {
+                        self.V[0xF] = 1;
+                    }
+                    self.screen[(x + xline as u16 + (y + yline * 64)) as usize] ^= 1;
+                }
+            }
+        }
+        self.drawFlag = true;
         self.pc += 2;
     }
     pub fn SKP(&mut self, op: u16)
