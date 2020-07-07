@@ -36,17 +36,19 @@ fn main() {
             {
                 let mut ypoint: u16 = 0;
                 let mut ycounter = 0;
+
                 for i in 0..chip8.screen.len()
                 {
                     let xpoint: u16 = (i % 64) as u16;
+
                     if chip8.screen[i] == 1
                     {
-                        let mut sprite = sfml::graphics::RectangleShape::new();
+                        let mut sprite = sfml::graphics::RectangleShape::with_size(Vector2f::new(10 as f32, 10 as f32));
                         sprite.set_position(Vector2f::new((xpoint * 10) as f32, (ypoint * 10) as f32));
                         sprite.set_fill_color(sfml::graphics::Color::WHITE);
                         window.draw(&sprite);
                     } else {
-                        let mut sprite = sfml::graphics::RectangleShape::new();
+                        let mut sprite = sfml::graphics::RectangleShape::with_size(Vector2f::new(10 as f32, 10 as f32));
                         sprite.set_position(Vector2f::new((xpoint * 10) as f32, (ypoint * 10) as f32));
                         sprite.set_fill_color(sfml::graphics::Color::BLACK);
                         window.draw(&sprite);

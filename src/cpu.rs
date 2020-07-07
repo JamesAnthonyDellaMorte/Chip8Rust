@@ -6,18 +6,16 @@ use sfml::{
 
 pub struct cpu {
     // index register
-    pub I: usize,
+    pub I: u16,
     // program counter
-    pub pc: usize,
+    pub pc: u16,
     // memory
     pub memory: [u8; 0x1000],
     // registers
     pub V: [u8; 0x10],
     pub  keycode: Vec<Key>,
-    // stack
-    pub stack: [usize; 0x10],
     // stack pointer
-    pub sp: usize,
+    pub stack: Vec<u16>,
     pub hexSprites: [u8; 0x50],
     pub delay_timer: u8,
     pub sound_timer: u8,
@@ -33,14 +31,13 @@ impl cpu {
 
         pc: 0x200,
         I: 0,
-        sp: 0,
+        stack: Vec::new(),
         keycode: vec!(Key::Num1,Key::Num2,Key::Num3,Key::Num4,
                       Key::Q,Key::W,Key::E,Key::R,
                       Key::A,Key::S,Key::D,Key::F,
                       Key::Z,Key::X,Key::C,Key::V),
         memory: [0;0x1000],
         V: [0; 0x10],
-        stack: [0; 0x10],
         sound_timer: 0,
         delay_timer: 0,
         hexSprites: [
@@ -83,15 +80,15 @@ impl cpu {
     pub fn run(&mut self,)
     {
 
-        let opcode: u16 = u16::from_be_bytes([self.memory[self.pc],self.memory[self.pc + 1]]);
+        let opcode: u16 = u16::from_be_bytes([self.memory[self.pc as usize],self.memory[self.pc as usize + 1]]);
         let nibbles = (
             (opcode & 0xF000) >> 12 as u16,
             (opcode & 0x0F00) >> 8 as u16,
             (opcode & 0x00F0) >> 4 as u16,
             (opcode & 0x000F) as u8,
         );
-      //  println!("Current Opcode: {:X}", opcode);
-        // println!("PC: {:X}", self.pc);
+        println!("Current Opcode: {:X}", opcode);
+         println!("PC: {:X}", self.pc);
 
         match nibbles
 
@@ -131,38 +128,32 @@ impl cpu {
             (0x0F, _, 0x05, 0x05) => self.LDVALL(opcode),//opcode Fx55
             (0x0F, _, 0x06, 0x05) => self.LDIALL(opcode),//opcode Fx65
 
-            _ => self.NOP(),
+            _ => (),
         }
 
     }
-    pub fn NOP(&mut self)
-    {
-        self.pc += 2;
-    }
+
     pub fn CLS(&mut self)
     {
-        println!("CLear Display");
+        println!("Clear Display");
     }
     pub fn RET(&mut self )
     {
-        self.sp -= 1;
-        self.pc = self.stack[self.sp] as usize;
-        self.pc += 2;
+        self.pc = self.stack.remove(0);
 
 
     }
     pub fn JP(&mut self, op: u16 )
     //opcode 1nnn
     {
-        self.pc = (op & 0x0FFF) as usize;
+        self.pc = op & 0x0FFF;
     }
     pub fn CALL(&mut self, op: u16 )
     //opcode 2nnn
     {
 
-        self.stack[self.sp] = self.pc as usize;
-        self.sp += 1;
-        self.pc = (op & 0x0FFF) as usize;
+        self.stack.push(self.pc);
+        self.pc = op & 0x0FFF;
 
     }
     pub fn SEVX(&mut self, op: u16)
@@ -310,12 +301,12 @@ impl cpu {
     }
     pub fn LDI(&mut self, op: u16)
     {//opcode Annn
-        self.I = (op & 0x0FFF) as usize;
+        self.I = (op & 0x0FFF) as u16;
         self.pc += 2;
     }
     pub fn JPV0(&mut self, op: u16)
     {//opcode Bnnn
-        self.pc = ((op & 0x0FFF) + self.V[0] as u16) as usize;
+        self.pc = op & 0x0FFF + self.V[0] as u16;
     }
     pub fn RND(&mut self, op: u16)
     {//opcode Cnnn
@@ -329,11 +320,11 @@ impl cpu {
        let x: u16 = self.V[((op & 0x0F00) >> 8) as usize] as u16;
         let y: u16 = self.V[((op & 0x00F0) >> 4) as usize] as u16;
         let height = op & 0x000F;
-        let mut pixel: u8;
+        let mut pixel: u16;
         self.V[0xF] = 0;
         for yline in 0..height
         {
-            pixel = self.memory[self.I + yline as usize];
+            pixel = self.memory[(self.I + yline) as usize] as u16;
             for xline in 0..8
             {
                 if pixel & (0x80 >> xline) != 0
@@ -397,20 +388,20 @@ impl cpu {
     }
     pub fn ADDI(&mut self, op: u16)
     {//opcode Fx1E
-        self.I = (self.V[((op & 0x0F00) >> 8) as usize] + self.I as u8) as usize;
+        self.I += self.V[((op & 0x0F00) >> 8) as usize] as u16;
         self.pc += 2;
 
     }
     pub fn LDHEXFT(&mut self, op: u16) {
         //opcode 0xF029
-        self.I  = (self.V[((op & 0x0F00) >> 8) as usize] * 0x5) as usize;
+        self.I  = (self.V[((op & 0x0F00) >> 8) as usize] * 0x5) as u16;
         self.pc += 2;
     }
     pub fn LDB(&mut self, op: u16)
     {//opcode 0xF033
-    self.memory[self.I] = self.V[((op & 0x0F00) >> 8) as usize] / 100;
-    self.memory[self.I + 1] = (self.V[((op & 0x0F00) >> 8) as usize]  / 10) % 10;
-    self.memory[self.I + 2] = (self.V[((op & 0x0F00) >> 8) as usize] ) % 10;
+    self.memory[self.I as usize] = self.V[((op & 0x0F00) >> 8) as usize] / 100;
+    self.memory[self.I as usize + 1] = (self.V[((op & 0x0F00) >> 8) as usize]  / 10) % 10;
+    self.memory[self.I as usize + 2] = (self.V[((op & 0x0F00) >> 8) as usize] ) % 10;
     self.pc += 2;
 
 
@@ -419,21 +410,21 @@ impl cpu {
     {//opcode 0xF055
     for i in 0..((op & 0x0F00) >> 8)
     {
-        self.memory[self.I + i as usize] = self.V[i as usize];
+        self.memory[(self.I + i) as usize] = self.V[i as usize];
     }
 
-
-    self.pc += 2;
+        self.I += ((op & 0x0F00) >> 8) + 1;
+        self.pc += 2;
     }
 
     pub fn LDIALL(&mut self, op: u16)
     {//opcode 0xF065
         for i in 0..((op & 0x0F00) >> 8)
         {
-            self.V[i as usize] = self.memory[self.I + i as usize];
+            self.V[i as usize] = self.memory[(self.I + i)  as usize];
         }
 
-
+        self.I += ((op & 0x0F00) >> 8) + 1;
         self.pc += 2;
     }
 }
