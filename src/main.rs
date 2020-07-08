@@ -1,4 +1,6 @@
 #![allow(non_snake_case)]
+extern crate core;
+
 #[allow(non_camel_case_types)]
 mod cpu;
 use std::{thread,time};
@@ -60,8 +62,9 @@ fn main() {
                         ycounter = 0
                     }
                 }
+
+                thread::sleep(time::Duration::from_micros(2200));
                 chip8.drawFlag = false;
-                thread::sleep(time::Duration::from_micros(1200));
             }
             window.display();
         }
