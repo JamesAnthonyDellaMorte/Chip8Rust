@@ -36,11 +36,13 @@ fn main() {
         }
         chip8.run();
 
-            if chip8.drawFlag == true{
+        if chip8.drawFlag == true
+        {
                 draw(&mut window, chip8.screen);
-            }
-            thread::sleep(time::Duration::from_micros(2200));
-            window.display();
+        }
+
+        window.display();
+        thread::sleep(time::Duration::from_micros(1200));
 
     }
 }
@@ -51,14 +53,13 @@ fn draw(window: &mut RenderWindow, graphics:[u8;2048])
     let mut gfx: Vec<u8> = Vec::with_capacity(64 * 32 * 4);
     for i in 0..(64 * 32) {
         let value = match graphics[i] {
-            0 => 0u8,
-            _ => 0xFFu8
+            0 => &[0,0,0,0xFF], // RGBA
+            _ => &[0xFF,0xFF,0xFF,0xFF] //RGBA
         };
 
 
-        for _ in 0..4 {
-            gfx.push(value);
-        }
+            gfx.extend_from_slice(value);
+
     }
 
 

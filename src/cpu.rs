@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 extern crate sfml;
+use std::collections::HashMap;
 use sfml::{
     window::{Key},
 };
@@ -14,7 +15,7 @@ pub struct cpu {
     pub memory: [u8; 0x1000],
     // registers
     pub V: [u8; 0x10],
-    pub  keycode: Vec<Key>,
+    pub  keycode: HashMap<u8,Key>,
     // stack pointer
     pub stack: Vec<u16>,
     pub hexSprites: [u8; 0x50],
@@ -33,10 +34,23 @@ impl cpu {
         pc: 0x200,
         I: 0,
         stack: Vec::new(),
-        keycode: vec!(Key::Num1,Key::Num2,Key::Num3,Key::Num4,
-                      Key::Q,Key::W,Key::E,Key::R,
-                      Key::A,Key::S,Key::D,Key::F,
-                      Key::Z,Key::X,Key::C,Key::V),
+        keycode: [  (0x1,Key::Num1),
+                    (0x2,Key::Num2),
+                    (0x3,Key::Num3),
+                    (0xC,Key::Num4),
+                    (0x4,Key::Q),
+                    (0x5,Key::W),
+                    (0x6,Key::E),
+                    (0xD,Key::R),
+                    (0x7,Key::A),
+                    (0x8,Key::S),
+                    (0x9,Key::D),
+                    (0xE,Key::F),
+                    (0xA,Key::Z),
+                    (0x0,Key::X),
+                    (0xB,Key::C),
+                    (0xF,Key::V),
+                    ].iter().cloned().collect(),
         memory: [0;0x1000],
         V: [0; 0x10],
         sound_timer: 0,
@@ -89,7 +103,7 @@ impl cpu {
             (opcode & 0x000F) as u8,
         );
         println!("Current Opcode: {:X}", opcode);
-         println!("PC: {:X}", self.pc);
+        // println!("PC: {:X}", self.pc);
         let last_2bytes = ((nibbles.2 << 4) | nibbles.3 as u16) as u8;
         let last_3byes =(nibbles.1 << 8) | last_2bytes as u16;
          match nibbles
@@ -355,7 +369,7 @@ impl cpu {
     }
     pub fn SKP(&mut self, x: u8)
     {//opcode Ex9E
-    if self.keycode[self.V[x as usize] as usize].is_pressed()
+    if self.keycode.get(&x).unwrap().is_pressed()
     {
         self.pc += 4;
     }
@@ -363,7 +377,8 @@ impl cpu {
     }
     pub fn SKNP(&mut self, x: u8)
     {//opcode ExA1
-        if !self.keycode[self.V[x as usize] as usize].is_pressed()
+
+        if !self.keycode.get(&x).unwrap().is_pressed()
         {
             self.pc += 4;
         }
@@ -377,11 +392,11 @@ impl cpu {
     pub fn LDKEY(&mut self, x: u8)
     {//opcode Fx0A
         'outer: loop {
-            for ele in &self.keycode
+            for ele in self.keycode.keys()
             {
-                if ele.is_pressed()
+                if self.keycode.get(ele).unwrap().is_pressed()
                 {
-                    self.V[x as usize] = self.keycode.iter().position(|&r| r == *ele).unwrap() as u8;
+                    self.V[x as usize] = *ele;//.keycode.iter().position(|&r| r == *ele).unwrap() as u8;
                     break 'outer;
                 }
             }
