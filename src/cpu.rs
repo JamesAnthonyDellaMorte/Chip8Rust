@@ -339,11 +339,14 @@ impl cpu {
             {
                 if pixel & (0x80 >> xline) != 0
                 {
-                    if self.screen[(Vx + xline as u16 + ((Vy + yline as u16) * 64)) as usize] == 1
-                    {
-                        self.V[0xF] = 1;
-                    }
-                    self.screen[(Vx + xline as u16 + ((Vy + yline as u16) * 64)) as usize] ^= 1;
+                    let mut idx = Vx + xline as u16 + ((Vy + yline as u16) * 64);
+                    idx = if idx >= self.screen.len() as u16 {
+                        64*32-1
+                    } else {
+                        idx
+                    };
+
+                    self.screen[idx as usize] ^= 1;
                 }
             }
         }

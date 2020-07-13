@@ -6,7 +6,10 @@ mod cpu;
 use std::{thread,time};
 use sfml::system::{Vector2f};
 use sfml::window:: {Event, Key,Style};
-use sfml::graphics::{RenderWindow, RenderTarget, Transformable, Shape};
+use sfml::graphics::{Color, Image, RenderWindow, RenderTarget, Sprite, Texture, Transformable};
+
+
+
 
 
 
@@ -23,50 +26,54 @@ fn main() {
 
 
     window.set_vertical_sync_enabled(true);
+    window.clear(sfml::graphics::Color::BLACK);
     while window.is_open() {
-        window.clear(sfml::graphics::Color::BLACK);
-        chip8.run();
         while let Some(event) = window.poll_event() {
             match event {
-                Event::Closed
-                | Event::KeyPressed {
-                    code: Key::Escape, ..
-                } => return,
+                Event::Closed | Event::KeyPressed { code: Key::Escape, .. } => window.close(),
                 _ => {}
             }
-            if chip8.drawFlag == true
-            {
-                let mut ypoint: u16 = 0;
-                let mut ycounter = 0;
+        }
+        chip8.run();
 
-                for i in 0..chip8.screen.len()
-                {
-                    let xpoint: u16 = (i % 64) as u16;
-
-                    if chip8.screen[i] == 1
-                    {
-                        let mut sprite = sfml::graphics::RectangleShape::with_size(Vector2f::new(10 as f32, 10 as f32));
-                        sprite.set_position(Vector2f::new((xpoint * 10) as f32, (ypoint * 10) as f32));
-                        sprite.set_fill_color(sfml::graphics::Color::WHITE);
-                        window.draw(&sprite);
-                    } else {
-                        let mut sprite = sfml::graphics::RectangleShape::with_size(Vector2f::new(10 as f32, 10 as f32));
-                        sprite.set_position(Vector2f::new((xpoint * 10) as f32, (ypoint * 10) as f32));
-                        sprite.set_fill_color(sfml::graphics::Color::BLACK);
-                        window.draw(&sprite);
-                    }
-                    ycounter += 1;
-                    if ycounter == 64
-                    {
-                        ypoint += 1;
-                        ycounter = 0
-                    }
-                }
-
-                thread::sleep(time::Duration::from_micros(2200));
-                chip8.drawFlag = false;
+            if chip8.drawFlag == true{
+                draw(&mut window, chip8.screen);
             }
+            thread::sleep(time::Duration::from_micros(2200));
             window.display();
+
+    }
+}
+
+
+fn draw(window: &mut RenderWindow, graphics:[u8;2048])
+{
+    let mut gfx: Vec<u8> = Vec::with_capacity(64 * 32 * 4);
+    for i in 0..(64 * 32) {
+        let value = match graphics[i] {
+            0 => 0u8,
+            _ => 0xFFu8
+        };
+
+
+        for _ in 0..4 {
+            gfx.push(value);
         }
     }
+
+
+    let img = match Image::create_from_pixels(64, 32, &gfx) {
+        Some(s) => s,
+        None => panic!("Couldn't create image from pixel array")
+    };
+    let tex = match Texture::from_image(&img) {
+        Some(s) => s,
+        None => panic!("Couldn't create texture from image")
+    };
+    let mut sprite = Sprite::with_texture(&tex);
+    sprite.scale(Vector2f::new(10f32, 10f32));
+    window.clear(Color::BLACK);
+    window.draw(&sprite);
+
+
 }
