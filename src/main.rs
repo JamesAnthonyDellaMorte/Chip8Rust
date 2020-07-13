@@ -38,7 +38,7 @@ fn main() {
 
         if chip8.drawFlag == true
         {
-                draw(&mut window, chip8.screen);
+                draw(&mut window, &chip8.screen);
         }
 
         window.display();
@@ -48,10 +48,10 @@ fn main() {
 }
 
 
-fn draw(window: &mut RenderWindow, graphics:[u8;2048])
+fn draw(window: &mut RenderWindow, graphics:&[u8])
 {
-    let mut gfx: Vec<u8> = Vec::with_capacity(64 * 32 * 4);
-    for i in 0..(64 * 32) {
+    let mut gfx: Vec<u8> = Vec::with_capacity(graphics.len());
+    for i in 0..graphics.len() {
         let value = match graphics[i] {
             0 => &[0,0,0,0xFF], // RGBA
             _ => &[0xFF,0xFF,0xFF,0xFF] //RGBA
@@ -71,7 +71,7 @@ fn draw(window: &mut RenderWindow, graphics:[u8;2048])
         Some(s) => s,
         None => panic!("Couldn't create texture from image")
     };
-    let mut sprite = Sprite::with_texture(&tex);
+    let mut sprite =  Sprite::with_texture(&tex);
     sprite.scale(Vector2f::new(10f32, 10f32));
     window.clear(Color::BLACK);
     window.draw(&sprite);
