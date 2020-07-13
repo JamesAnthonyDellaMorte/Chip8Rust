@@ -52,7 +52,7 @@ fn draw(window: &mut RenderWindow, graphics:&[u8])
 {
     let mut gfx: Vec<u8> = Vec::with_capacity(graphics.len());
     for i in 0..graphics.len() {
-        let value = match graphics[i] {
+      let value = match graphics[i] {
             0 => &[0,0,0,0xFF], // RGBA
             _ => &[0xFF,0xFF,0xFF,0xFF] //RGBA
         };
