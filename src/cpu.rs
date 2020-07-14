@@ -69,7 +69,7 @@ impl cpu {
             ],
             screen: [0; 64 * 32],
             drawFlag: false,
-            sound: Sound::new("src/beep-03.wav").unwrap(),
+            sound: Sound::new("src/beep.wav").unwrap(),
 
         }
 
