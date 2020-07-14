@@ -149,16 +149,15 @@ impl cpu {
         {
 
             self.delay_timer -= 1;
+            thread::sleep(time::Duration::from_millis(13));
         }
         while self.sound_timer > 0
         {
 
                 self.sound.play();
-                thread::sleep(time::Duration::from_millis(15));
+                thread::sleep(time::Duration::from_millis(13));
                 self.sound.stop();
                 self.sound_timer -= 1;
-
-
         }
 
 
