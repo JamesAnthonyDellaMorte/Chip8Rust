@@ -75,7 +75,7 @@ impl cpu {
 
       //  for elem in self.memory.iter_mut() { *elem = 0; }
     }
-    pub fn init_memory(&mut self, path: &str )
+    pub fn init_memory(&mut self, path: String )
     {
         let  rom = std::fs::read(path).unwrap();
         for i in 0..self.hexSprites.len() {

@@ -13,7 +13,8 @@ use sfml::graphics::{Color, Image, RenderWindow, RenderTarget, Sprite, Texture, 
 fn main() {
 
     let mut chip8 = cpu::cpu::new();
-    chip8.init_memory("src/Pong.ch8");
+    let input_path = std::env::args().nth(1).expect("No ROM found");
+    chip8.init_memory(input_path);
     // let desktop = VideoMode::desktop_mode();
     let mut window = RenderWindow::new((1280, 640),
                                        "Chip8 Emualtor",
