@@ -47,13 +47,13 @@ fn main() {
 }
 
 
-fn draw(window: &mut RenderWindow, graphics:&[u8], flag:  bool)
+fn draw(window: &mut RenderWindow, graphics:&[bool], flag:  bool)
 {
     let mut gfx: Vec<u8> = Vec::with_capacity(graphics.len());
     for i in 0..graphics.len() {
       let value = match graphics[i] {
-            0 => &[0,0,0,0xFF], // RGBA
-            _ => &[0xFF,0xFF,0xFF,0xFF] //RGBA
+            false => &[0,0,0,0xFF], // RGBA
+            true => &[0xFF,0xFF,0xFF,0xFF] //RGBA
         };
 
 

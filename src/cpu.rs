@@ -11,20 +11,20 @@ use std::{thread, time};
 
 pub struct cpu {
     // index register
-    pub I: u16,
+    I: u16,
     // program counter
-    pub pc: u16,
+    pc: u16,
     // memory
-    pub memory: [u8; 0x1000],
+    memory: [u8; 0x1000],
     // registers
-    pub V: [u8; 0x10],
-    pub  keycode: Vec<Key>,
+    V: [u8; 0x10],
+    keycode: Vec<Key>,
     // stack pointer
-    pub stack: Vec<u16>,
-    pub hexSprites: [u8; 0x50],
-    pub delay_timer: u8,
-    pub sound_timer: u8,
-    pub screen: [u8; 64 * 32],
+    stack: Vec<u16>,
+    hexSprites: [u8; 0x50],
+    delay_timer: u8,
+    sound_timer: u8,
+    pub screen: [bool; 64 * 32],
     pub drawFlag: bool,
     sound: Sound,
 
@@ -67,7 +67,7 @@ impl cpu {
             0xF0, 0x80, 0xF0, 0x80, 0xF0, //E
             0xF0, 0x80, 0xF0, 0x80, 0x80  //F
             ],
-            screen: [0; 64 * 32],
+            screen: [false; 64 * 32],
             drawFlag: false,
             sound: Sound::new("src/beep.wav").unwrap(),
 
@@ -165,7 +165,7 @@ impl cpu {
 
     pub fn CLS(&mut self)
     {
-        for pixel in self.screen.iter_mut() {*pixel = 0}
+        for pixel in self.screen.iter_mut() {*pixel = false}
         self.drawFlag = true;
         self.pc += 2;
 
@@ -372,7 +372,7 @@ impl cpu {
                         idx
                     };
 
-                    self.screen[idx as usize] ^= 1;
+                    self.screen[idx as usize] ^= true;
                 }
             }
         }
