@@ -2,7 +2,11 @@
 extern crate sfml;
 use sfml::{
     window::{Key},
+
 };
+extern crate ears;
+use ears::{Sound, AudioController};
+use std::{thread, time};
 
 
 pub struct cpu {
@@ -22,6 +26,10 @@ pub struct cpu {
     pub sound_timer: u8,
     pub screen: [u8; 64 * 32],
     pub drawFlag: bool,
+    sound: Sound,
+
+
+
 
 
 }
@@ -61,7 +69,10 @@ impl cpu {
             ],
             screen: [0; 64 * 32],
             drawFlag: false,
+            sound: Sound::new("src/beep-03.wav").unwrap(),
+
         }
+
       //  for elem in self.memory.iter_mut() { *elem = 0; }
     }
     pub fn init_memory(&mut self, path: &str )
@@ -74,7 +85,13 @@ impl cpu {
        {
            self.memory[0x200 + i] = rom[i];
        }
+        thread::spawn(move || {
+            loop {
+
+            }
+        });
         println!("Game loaded");
+
 
 
     }
@@ -132,7 +149,21 @@ impl cpu {
 
             _ => (),
         }
-        if self.delay_timer > 0{  self.delay_timer -= 1;}
+        while self.delay_timer > 0
+        {
+
+            self.delay_timer -= 1;
+        }
+        while self.sound_timer > 0
+        {
+
+                self.sound.play();
+                thread::sleep(time::Duration::from_millis(15));
+                self.sound.stop();
+                self.sound_timer -= 1;
+
+
+        }
 
 
     }

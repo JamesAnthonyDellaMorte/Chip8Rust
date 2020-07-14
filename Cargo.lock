@@ -4,6 +4,7 @@
 name = "Chip8Rust"
 version = "0.1.0"
 dependencies = [
+ "ears",
  "rand",
  "sfml",
 ]
@@ -61,6 +62,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ears"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d5948e26b1fd64bd20c09784e76286b40d2b865bbbf85c9c8378d2474b09c01"
+dependencies = [
+ "lazy_static",
+ "libc",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.1.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -70,6 +81,12 @@ dependencies = [
  "libc",
  "wasi",
 ]
+
+[[package]]
+name = "lazy_static"
+version = "0.2.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76f033c7ad61445c5b347c7382dd1237847eb1bce590fe50365dcb33d546be73"
 
 [[package]]
 name = "libc"

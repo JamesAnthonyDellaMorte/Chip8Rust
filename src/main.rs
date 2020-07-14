@@ -15,7 +15,7 @@ fn main() {
     let mut chip8 = cpu::cpu::new();
     chip8.init_memory("src/Pong.ch8");
     // let desktop = VideoMode::desktop_mode();
-    let mut window = RenderWindow::new((640, 320),
+    let mut window = RenderWindow::new((1280, 640),
                                        "Chip8 Emualtor",
                                        Style::CLOSE,
                                        &Default::default(),
@@ -40,7 +40,7 @@ fn main() {
         chip8.drawFlag = false;
 
 
-        thread::sleep(time::Duration::from_micros(1000));
+        thread::sleep(time::Duration::from_millis(2));
 
 
     }
@@ -72,7 +72,7 @@ fn draw(window: &mut RenderWindow, graphics:&[u8], flag:  bool)
             None => panic!("Couldn't create texture from image")
         };
         let mut sprite = Sprite::with_texture(&tex);
-        sprite.scale(Vector2f::new(10f32, 10f32));
+        sprite.scale(Vector2f::new(20f32, 20f32));
         window.clear(Color::BLACK);
         window.draw(&sprite);
         window.display();

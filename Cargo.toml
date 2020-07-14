@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 rand = "0.7.3"
 sfml = "0.15.1"
+ears = "0.7.0"
