@@ -371,7 +371,9 @@ impl cpu {
                     } else {
                         idx
                     };
-
+                    if self.screen[idx as usize] == true {
+                        self.V[0xF] = 1;
+                    }
                     self.screen[idx as usize] ^= true;
                 }
             }
