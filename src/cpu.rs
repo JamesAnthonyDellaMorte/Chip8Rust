@@ -35,8 +35,8 @@ impl cpu {
         stack: Vec::new(),
         keycode: vec!( Key::X,Key::Num1, Key::Num2,Key::Num3,
                        Key::Q,Key::W,Key::E,Key::A,
-                       Key::S,Key::D,Key::Z,
-                       Key::C,Key::Num4,Key::R,Key::F,Key::V),
+                       Key::S,Key::D,Key::Z,Key::C,
+                       Key::Num4,Key::R,Key::F,Key::V),
         memory: [0;0x1000],
         V: [0; 0x10],
         sound_timer: 0,
@@ -88,7 +88,7 @@ impl cpu {
             (opcode & 0x00F0) >> 4 as u16,
             (opcode & 0x000F) as u8,
         );
-        println!("Current Opcode: {:X}", opcode);
+      //  println!("Current Opcode: {:X}", opcode);
         // println!("PC: {:X}", self.pc);
         let last_2bytes = ((nibbles.2 << 4) | nibbles.3 as u16) as u8;
         let last_3byes =(nibbles.1 << 8) | last_2bytes as u16;

@@ -10,9 +10,6 @@ use sfml::graphics::{Color, Image, RenderWindow, RenderTarget, Sprite, Texture, 
 
 
 
-
-
-
 fn main() {
 
     let mut chip8 = cpu::cpu::new();
@@ -38,17 +35,19 @@ fn main() {
 
         if chip8.drawFlag == true
         {
-                draw(&mut window, &chip8.screen);
+                draw(&mut window, &chip8.screen,  chip8.drawFlag);
         }
+        chip8.drawFlag = false;
 
-        window.display();
-        thread::sleep(time::Duration::from_micros(1200));
+
+        thread::sleep(time::Duration::from_micros(1000));
+
 
     }
 }
 
 
-fn draw(window: &mut RenderWindow, graphics:&[u8])
+fn draw(window: &mut RenderWindow, graphics:&[u8], flag:  bool)
 {
     let mut gfx: Vec<u8> = Vec::with_capacity(graphics.len());
     for i in 0..graphics.len() {
@@ -62,19 +61,23 @@ fn draw(window: &mut RenderWindow, graphics:&[u8])
 
     }
 
+    if flag == true
+    {
+        let img = match Image::create_from_pixels(64, 32, &gfx) {
+            Some(s) => s,
+            None => panic!("Couldn't create image from pixel array")
+        };
+        let tex = match Texture::from_image(&img) {
+            Some(s) => s,
+            None => panic!("Couldn't create texture from image")
+        };
+        let mut sprite = Sprite::with_texture(&tex);
+        sprite.scale(Vector2f::new(10f32, 10f32));
+        window.clear(Color::BLACK);
+        window.draw(&sprite);
+        window.display();
 
-    let img = match Image::create_from_pixels(64, 32, &gfx) {
-        Some(s) => s,
-        None => panic!("Couldn't create image from pixel array")
-    };
-    let tex = match Texture::from_image(&img) {
-        Some(s) => s,
-        None => panic!("Couldn't create texture from image")
-    };
-    let mut sprite =  Sprite::with_texture(&tex);
-    sprite.scale(Vector2f::new(10f32, 10f32));
-    window.clear(Color::BLACK);
-    window.draw(&sprite);
 
+    }
 
 }
