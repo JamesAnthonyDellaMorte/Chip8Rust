@@ -85,11 +85,7 @@ impl cpu {
        {
            self.memory[0x200 + i] = rom[i];
        }
-        thread::spawn(move || {
-            loop {
 
-            }
-        });
         println!("Game loaded");
 
 
