@@ -1,9 +1,12 @@
 #![allow(dead_code)]
 extern crate sfml;
 use sfml::window::Key;
-extern crate ears;
-use ears::{AudioController, Sound};
+//extern crate ears;
+//use ears::{AudioController, Sound};
 use std::{thread, time};
+use self::sfml::audio::{Sound, SoundBuffer};
+use self::sfml::system::SfBox;
+
 
 pub struct cpu {
     // index register
@@ -22,7 +25,7 @@ pub struct cpu {
     sound_timer: u8,
     pub screen: [bool; 64 * 32],
     pub drawFlag: bool,
-    sound: Sound,
+    soundBuffer: SfBox<SoundBuffer>,
 }
 impl cpu {
     pub fn new() -> Self {
@@ -72,7 +75,7 @@ impl cpu {
             ],
             screen: [false; 64 * 32],
             drawFlag: false,
-            sound: Sound::new("src/beep.wav").unwrap(),
+            soundBuffer: SoundBuffer::from_file("src/beep.wav").unwrap(),
         }
 
         //  for elem in self.memory.iter_mut() { *elem = 0; }
@@ -138,15 +141,16 @@ impl cpu {
 
             _ => (),
         }
+        let mut sound = Sound::with_buffer(&self.soundBuffer);
         while self.delay_timer > 0 {
             self.delay_timer -= 1;
             thread::sleep(time::Duration::from_millis(13));
         }
         while self.sound_timer > 0 {
-            self.sound.play();
-            thread::sleep(time::Duration::from_millis(13));
-            self.sound.stop();
-            self.sound_timer -= 1;
+
+          sound.play();
+           thread::sleep(time::Duration::from_millis(13));
+           self.sound_timer -= 1;
         }
     }
 

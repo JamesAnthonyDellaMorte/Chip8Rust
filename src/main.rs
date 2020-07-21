@@ -39,7 +39,7 @@ fn main() {
         }
         chip8.drawFlag = false;
 
-        thread::sleep(time::Duration::from_millis(2));
+
     }
 }
 
